@@ -6,18 +6,15 @@ import { isElement } from "react-dom/test-utils";
 
 function App() {
   const [sdk, setSdk] = useState();
- 
+
   const container = useRef();
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const [matterTag1, setMatterTag1] = useState([]);
-  const [matterTag2, setMatterTag2] = useState("");
- 
+  const [allMatterTag, setAllMatterTag] = useState([]);
+
   const [positionPointer, setPositionPointer] = useState(
     "x=0" + ", y=0" + ",z=0"
   );
-
- 
 
   const [iframe, setIframe] = useState();
 
@@ -59,32 +56,7 @@ function App() {
       (state) => state.phase === sdk.App.Phase.PLAYING
     );
   }
-  const editMatterTag = () => {
-    /* console.log(matterTag1);
-    console.log(matterTag2); */
 
-    fetch(
-      "https://pom-iot-default-rtdb.asia-southeast1.firebasedatabase.app/aircon.json"
-    )
-      .then((response) => {
-        //console.log(response.json());
-        return response.json();
-      })
-      .then((data) => {
-        console.log(matterTag1);
-
-        //console.log(matterTag2);
-        sdk.Mattertag.editBillboard(matterTag1, {
-          description:
-            "[Link to Mattertag SDK!](https://matterport.github.io/showcase-sdk/sdk_editing_mattertags.html) \r\n [Link to api doc](https://matterport.github.io/showcase-sdk/docs/reference/current/index.html)\r\n ! Air Con = " +
-            data.temp +
-            " !" +
-            "\r\n\r\n" +
-            "\r\n\r\n" +
-            "click button to reset to 25c",
-        });
-      });
-  };
   useEffect(() => {
     //After finished load
 
@@ -94,15 +66,6 @@ function App() {
     }
   }, [isLoaded]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isLoaded) {
-        //timer do something
-        editMatterTag();
-      }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [matterTag1, matterTag2]);
   function pointToString(point) {
     var x = point.x.toFixed(3);
     var y = point.y.toFixed(3);
@@ -112,7 +75,7 @@ function App() {
   }
 
   const registerCustomComponent = async () => {
-   /*  sdk.Scene.register(boxFactoryType, makeBoxFactory);
+    /*  sdk.Scene.register(boxFactoryType, makeBoxFactory);
     sdk.Scene.register(iotBoxType, makeIotBox); */
   };
 
@@ -138,12 +101,15 @@ function App() {
 
     registerCustomComponent();
 
-    addComponentNode1();
-   
+    //addComponentNode1();
 
-    addMattertagNode1();
-    addMattertagNode2();
-    addMattertagNode3();
+    //addMattertagNode1();
+    //addMattertagNode2();
+
+    addMatterTagFromJson();
+
+    //html sandbox injection
+    //addMattertagNode3();
 
     //add pointer
     sdk.Pointer.intersection.subscribe(function (intersection) {
@@ -153,7 +119,8 @@ function App() {
           pointToString(intersection.position) +
           " normal = " +
           pointToString(intersection.normal) +
-          " floorId = " + intersection.floorId
+          " floorId = " +
+          intersection.floorId
       );
     });
   };
@@ -167,7 +134,135 @@ function App() {
   const iframeHandler = () => {
     setIframe(null);
   };
- 
+
+  const addMatterTagFromJson = () => {
+    fetch(
+      "https://pom-iot-default-rtdb.asia-southeast1.firebasedatabase.app/IOTEquipment/MatterTag.json"
+    )
+      .then((response) => {
+        const json = response.json();
+
+        return json;
+      })
+      .then((data) => {
+        /* this.outputs.objectRoot.material.color.setHex(data.hexColor);
+        this.inputs.myUpdatedHexColor = data.hexColor;
+        this.outputs.objectRoot.scale.set(
+          data.scaleSize,
+          data.scaleSize,
+          data.scaleSize
+        ); */
+        //scaleSize
+        const allTagCount = data.count;
+        const allItems = data.items;
+
+        allItems.forEach((element) => {
+          if (element.type === "data") {
+            addTextMatterTag(
+              element.header,
+              element.val,
+              element.position,
+              element.normal
+            );
+          }
+          if (element.type === "iframe") {
+            addIframeMatterTag(
+              element.header,
+              "",
+              element.position,
+              element.normal,
+              element.link,
+              element.w,
+              element.h
+            );
+          }
+
+          console.log(element);
+        });
+
+        console.log(allTagCount);
+        console.log(allItems);
+      });
+  };
+
+  const addTextMatterTag = (label, description, position, vector) => {
+    var mattertagDesc = {
+      label: label,
+      description: description,
+      anchorPosition: position,
+      stemVector: vector,
+    };
+
+    sdk.Mattertag.add(mattertagDesc).then(function (mattertagId) {});
+  };
+
+  const addIframeMatterTag = (
+    label,
+    description,
+    position,
+    vector,
+    link,
+    w,
+    h
+  ) => {
+    h=600;
+    w=800;
+    const tagId = sdk.Tag.add({
+      label: label,
+      anchorPosition: position,
+      stemVector: vector,
+    }).then(function (tagId) {
+      var htmlToInject =
+        ' \
+<style> \
+button { \
+width: 260px; \
+height: 50px; \
+} \
+</style> \
+<iframe src="' +
+        link +
+        '" height="' +
+        h +
+        '" width="' +
+        w +
+        '" title="Iframe Example"></iframe> \
+<br></br> \
+<button id="btn2">Go to Dashboard</button> \
+<script> \
+var btn2 = document.getElementById("btn2"); \
+btn2.addEventListener("click", function () { \
+window.send("buttonClick2", 123456); \
+}); \
+</script>';
+//alert(htmlToInject);
+var htmlToInject2 =
+        ' \
+<style> \
+button { \
+width: 260px; \
+height: 50px; \
+} \
+</style> \
+<iframe src="https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2" height="500" width="600" title="Iframe Example"></iframe> \
+<br></br> \
+<button id="btn2">Go to Dashboard</button> \
+<script> \
+var btn2 = document.getElementById("btn2"); \
+btn2.addEventListener("click", function () { \
+window.send("buttonClick2", 123456); \
+}); \
+</script>';
+      const sandboxId = sdk.Tag.registerSandbox(htmlToInject, {
+        size: {
+          w: 800,
+          h: 600,
+        },
+      }).then(function (sandboxId) {
+        sdk.Tag.attach(tagId[0], sandboxId[0]);
+      });
+    });
+  };
 
   const addMattertagNode1 = () => {
     var mattertagDesc = {
@@ -179,7 +274,7 @@ function App() {
     //setMatterTag2("test");
     sdk.Mattertag.add(mattertagDesc).then(function (mattertagId) {
       //console.log(mattertagId);
-      setMatterTag1(mattertagId[0]);
+      //setMatterTag1(mattertagId[0]);
 
       var htmlToInject =
         ' \
@@ -230,7 +325,7 @@ window.send("buttonClick", 12345); \
     //setMatterTag2("test");
     sdk.Mattertag.add(mattertagDesc).then(function (mattertagId) {
       //console.log(mattertagId);
-      setMatterTag2(mattertagId[0]);
+      //setMatterTag2(mattertagId[0]);
 
       var htmlToInject =
         ' \
@@ -293,8 +388,8 @@ window.send("buttonClick2", 123456); \
       label: "Hello Iframe C",
       description:
         "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
-      anchorPosition: { x: -1, y: -6.9, z: 3.9 },
-      stemVector: { x: 0, y: -0.5, z: 0 },
+      anchorPosition: { x: -1.821, y: 0.003, z: 1.326 },
+      stemVector: { x: 0, y: 1, z: 0 },
       /*  media: {
         src: "http://appz.myftp.org:3000/api/hassio_ingress/fCKbAFQTyuWnTeRV4Nymoc9my1yaH63Y3wIxWFqEP8Q/d/pq5JN9L4z/c?orgId=1&from=1681233228674&to=1681287506562&viewPanel=2",
         type: "mattertag.media.none",
@@ -306,9 +401,9 @@ window.send("buttonClick2", 123456); \
     console.log(sdk.Tag);
     // create a tag
     const tagId = sdk.Tag.add({
-      label: "Test Tag",
-      anchorPosition: { x: -1, y: -6.9, z: 3.9 },
-      stemVector: { x: 0, y: -0.5, z: 0 },
+      label: "***Test Tag",
+      anchorPosition: { x: -1.821, y: 0.003, z: 1.326 },
+      stemVector: { x: 0, y: 1, z: 0 },
     }).then(function (tagId) {
       console.log("tag id");
       console.log(tagId);
@@ -351,10 +446,6 @@ window.send("buttonClick2", 123456); \
       // output: TODO
     }); */
   };
-
-
-
-  
 
   const addComponentNode1 = async () => {
     var [sceneObject] = await sdk.Scene.createObjects(1);
@@ -460,21 +551,23 @@ window.send("buttonClick2", 123456); \
     node2.start();
   };
 
- 
-
   return (
     <div className="app">
       {/* <div className="container" ref={container}></div> */}
 
       <div className="button-wrap">
-        
-        **Hover mouse for show position<br></br> {positionPointer}<br></br>
-         <button onClick={() => { setIframe({
-          title: "Watch Realtime IOT Grafana",
-          message:
-            /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
-            "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
-        });}}>
+        **Hover mouse for show position<br></br> {positionPointer}
+        <br></br>
+        <button
+          onClick={() => {
+            setIframe({
+              title: "Watch Realtime IOT Grafana",
+              message:
+                /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
+                "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
+            });
+          }}
+        >
           Open external iframe
         </button>
         {/* <button onClick={()=>(nodeBox.start())}>Start Node</button>
@@ -491,7 +584,7 @@ window.send("buttonClick2", 123456); \
         id="showcase"
         //src="./bundle/showcase.html?m=V5hx2ktRhvH&play=1&qs=1&log=0&applicationKey=w78qr7ncg7npmnhwu1xi07yza"
         src="./showcase-bundle/showcase.html?m=gKg4s9Z27t4&play=1&qs=1&log=0&applicationKey=x1pa124pp38sxs85k46kmbuha"
-        width="1200px"
+        width="100%"
         height="800px"
         frameBorder="0"
         allow="xr-spatial-tracking"
