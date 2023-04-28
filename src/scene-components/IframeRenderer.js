@@ -1,6 +1,6 @@
 //import {CSS3DRenderer,CSS3DObject } from  'three-css3drenderer'
 
-function VideoRenderer() {
+function IframeRenderer() {
   this.inputs = {
     visible: true,
     size: { x: 1, y: 1, z: 1 },
@@ -84,12 +84,12 @@ function VideoRenderer() {
       "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/textures/ff.png"
     ); */
     this.playIconTexture = textureLoader.load(
-      window.location + "icon/play.svg"
+      window.location + "icon/orange/tem2.svg"
     );
       console.log(this.playIconTexture);
     this.material = new THREE.MeshBasicMaterial({
       map: this.playIconTexture,
-      opacity: 0.5,
+      opacity: 1,
     });
     var mesh = new THREE.Mesh(this.geometry, this.material);
     mesh.material.color.setHex(this.inputs.color);
@@ -180,7 +180,7 @@ function VideoRenderer() {
     return new Box();
  } */
 
-export const videoRendererType = "mp.videoRenderer";
-export const makeVideoRenderer = function () {
-  return new VideoRenderer();
+export const iframeRendererType = "mp.iframeRenderer";
+export const makeIframeRenderer = function () {
+  return new IframeRenderer();
 };

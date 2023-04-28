@@ -169,7 +169,7 @@ function App() {
       var initial = {
         //url: "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/models/sofa/9/scene.gltf",
         visible: true,
-        size: { x: 0.6, y: 0.6, z: 0.01 },
+        size: { x: 1, y: 0.6, z: 0.01 },
         localScale: {
           x: 1,
           y: 1,
