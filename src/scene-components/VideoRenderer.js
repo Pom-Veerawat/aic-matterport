@@ -1,5 +1,5 @@
 //import {CSS3DRenderer,CSS3DObject } from  'three-css3drenderer'
-
+import Hls from "hls.js";
 function VideoRenderer() {
   this.inputs = {
     visible: true,
@@ -80,13 +80,13 @@ function VideoRenderer() {
     // Texture Loading
     //window.location + "icon/orange/tem2.svg"
     var textureLoader = new THREE.TextureLoader();
-  /*   this.playIconTexture = textureLoader.load(
+    /*   this.playIconTexture = textureLoader.load(
       "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/textures/ff.png"
     ); */
     this.playIconTexture = textureLoader.load(
       window.location + "icon/play.svg"
     );
-      console.log(this.playIconTexture);
+    console.log(this.playIconTexture);
     this.material = new THREE.MeshBasicMaterial({
       map: this.playIconTexture,
       opacity: 0.5,
@@ -113,8 +113,22 @@ function VideoRenderer() {
         return;
       }
       var THREE = this.context.three;
+      /* this.inputsrc = window.location + "vdo/AIC-intro.mp4"; */
+      this.inputsrc =
+        "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8";
       this.video = this.createVideoElement();
-      this.video.src = window.location + "vdo/AIC-intro.mp4";
+      if (this.inputsrc.includes(".m3u8")) {
+        this.hls = new Hls();
+        this.hls.loadSource(this.inputsrc);
+        this.hls.attachMedia(this.video);
+        this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          this.outputs.video = this.video;
+        });
+      } else {
+        this.video.src = this.inputsrc;
+      }
+      /* this.video.src = ; */
+
       this.video.load();
 
       this.texture = new THREE.VideoTexture(this.video);

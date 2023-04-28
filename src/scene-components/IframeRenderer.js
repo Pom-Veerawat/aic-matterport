@@ -1,10 +1,12 @@
 //import {CSS3DRenderer,CSS3DObject } from  'three-css3drenderer'
+import { CSS3DRenderer, CSS3DSprite, CSS3DObject } from "three-css3d";
 
 function IframeRenderer() {
   this.inputs = {
     visible: true,
     size: { x: 1, y: 1, z: 1 },
     color: 0xffff00,
+    scene: null,
   };
   this.firstplay = false;
   /* inputs: Inputs = {
@@ -49,6 +51,32 @@ function IframeRenderer() {
   this.onInit = function () {
     var THREE = this.context.three;
 
+    this.currentScene = this.context.scene;
+    this.container = document.getElementById("showcase");
+
+    this.renderer = new CSS3DRenderer();
+
+    /* this.renderer.setSize( window.innerWidth, window.innerHeight ); */
+
+    console.log(this.renderer.domElement);
+    
+    this.container.appendChild(this.renderer.domElement);
+    this.objectDOM = document.createElement("div");
+    this.spriteDOM = document.createElement("div");
+
+    this.object = new CSS3DObject(this.objectDOM);
+    this.sprite = new CSS3DSprite(this.spriteDOM);
+
+   /*  this.currentScene.add(this.object, this.sprite);
+    this.renderer.render(this.scene, this.camera); */
+    console.log(this.container);
+    /* const group = new THREE.Group();
+        const item1 = this.Element( 'SJOz3qjfQXU',0, 0, 0, 0 );
+				group.add( item1 );
+				group.add( new Element( 'Y2-xZ-1HE-Q', 240, 0, 0, Math.PI / 2 ) );
+				group.add( new Element( 'IrydklNpcFI', 0, 0, - 240, Math.PI ) );
+				group.add( new Element( '9ubytEsCaS0', - 240, 0, 0, - Math.PI / 2 ) );
+        currentScene.add( group ); */
     /* if (this.inputs.src instanceof HTMLVideoElement) {
       this.video = this.inputs.src;
     } else {
@@ -62,7 +90,7 @@ function IframeRenderer() {
 
       this.video.load();
     } */
-
+    return;
     this.geometry = new THREE.BoxGeometry(
       this.inputs.size.x,
       this.inputs.size.y,
@@ -80,13 +108,13 @@ function IframeRenderer() {
     // Texture Loading
     //window.location + "icon/orange/tem2.svg"
     var textureLoader = new THREE.TextureLoader();
-  /*   this.playIconTexture = textureLoader.load(
+    /*   this.playIconTexture = textureLoader.load(
       "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/textures/ff.png"
     ); */
     this.playIconTexture = textureLoader.load(
       window.location + "icon/orange/tem2.svg"
     );
-      console.log(this.playIconTexture);
+    console.log(this.playIconTexture);
     this.material = new THREE.MeshBasicMaterial({
       map: this.playIconTexture,
       opacity: 1,
@@ -152,6 +180,26 @@ function IframeRenderer() {
     video.loop = true;
 
     return video;
+  };
+
+  this.Element = (id, x, y, z, ry) => {
+    const div = document.createElement("div");
+    div.style.width = "480px";
+    div.style.height = "360px";
+    div.style.backgroundColor = "#000";
+
+    const iframe = document.createElement("iframe");
+    iframe.style.width = "480px";
+    iframe.style.height = "360px";
+    iframe.style.border = "0px";
+    iframe.src = ["https://www.youtube.com/embed/", id, "?rel=0"].join("");
+    div.appendChild(iframe);
+
+    const object = new CSS3DObject(div);
+    object.position.set(x, y, z);
+    object.rotation.y = ry;
+
+    return object;
   };
 }
 

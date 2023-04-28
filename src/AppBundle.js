@@ -4,6 +4,10 @@ import {
   videoRendererType,
   makeVideoRenderer,
 } from "./scene-components/VideoRenderer";
+import {
+  iframeRendererType,
+  makeIframeRenderer,
+} from "./scene-components/IframeRenderer";
 import Iframe from "./UI/Iframe";
 import { isElement } from "react-dom/test-utils";
 
@@ -81,6 +85,7 @@ function App() {
 
   const registerCustomComponent = async () => {
     sdk.Scene.register(videoRendererType, makeVideoRenderer);
+    sdk.Scene.register(iframeRendererType, makeIframeRenderer);
     /*  sdk.Scene.register(boxFactoryType, makeBoxFactory);
     sdk.Scene.register(iotBoxType, makeIotBox); */
   };
@@ -132,6 +137,7 @@ function App() {
     //addMattertagNode1();
     //addMattertagNode2();
     addVideoObjectFromJson();
+    addIframeObjectFromJson();
     addMatterTagFromJson();
 
     //html sandbox injection
@@ -162,9 +168,7 @@ function App() {
   };
 
   const addVideoObjectFromJson = () => {
-    
     sdk.Scene.createObjects(1).then((sceneObject) => {
-     
       var node3 = sceneObject[0].addNode("node-obj-3");
       var initial = {
         //url: "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/models/sofa/9/scene.gltf",
@@ -194,13 +198,12 @@ function App() {
         initial,
         "my-component-3"
       );
-      
+
       class ClickSpy {
         node = node3;
         component = gltfrtv;
         eventType = "INTERACTION.CLICK";
         onEvent(payload) {
-
           //this.component.video.play();//ย้ายไปเรียกในตัว three เพราะจะได้มี toggle
           return;
           console.log("received node3", payload, this);
@@ -227,7 +230,92 @@ function App() {
         }
       }
       node3.position.set(-6.629, 0.686, 3.266);
-      
+
+      console.log(node3);
+      // Spy on the click event
+      //inputComponent.spyOnEvent(new ClickSpy());
+      //console.log(node3);
+      //gltfrtv?.outputs.objectRoot.position.set(0,-7,0);
+      gltfrtv?.spyOnEvent(new ClickSpy());
+
+      //setComponentBoxFactory(gltfrtv);
+      node3.start();
+      //setNodeBoxFactory(node3);
+      //console.log(gltfrtv);
+    });
+
+    // You can enable navigation after starting the node.
+    //inputComponent.inputs.userNavigationEnabled = true;
+    //console.log(node);
+    // You can turn off all events and the spy wont receive any callbacks.
+    //inputComponent.inputs.eventsEnabled = false;
+  };
+
+  const addIframeObjectFromJson = () => {
+    sdk.Scene.createObjects(1).then((sceneObject) => {
+      var node3 = sceneObject[0].addNode("node-obj-3");
+      var initial = {
+        //url: "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/models/sofa/9/scene.gltf",
+        visible: true,
+        size: { x: 1, y: 0.6, z: 0.01 },
+        localScale: {
+          x: 1,
+          y: 1,
+          z: 1,
+        },
+        localPosition: {
+          x: -5.12,
+          y: 0.002,
+          z: 2.4,
+        },
+        localRotation: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+       
+
+        /*  position: { x: -1, y: -7.5, z: 2.25 }, */
+      };
+
+      const gltfrtv = node3.addComponent(
+        iframeRendererType,
+        initial,
+        "my-component-3"
+      );
+
+      class ClickSpy {
+        node = node3;
+        component = gltfrtv;
+        eventType = "INTERACTION.CLICK";
+        onEvent(payload) {
+          //this.component.video.play();//ย้ายไปเรียกในตัว three เพราะจะได้มี toggle
+          return;
+          console.log("received node3", payload, this);
+          console.log(this.component.material.color);
+          if (
+            this.component.material.color.r === 1 &&
+            this.component.material.color.g === 1 &&
+            this.component.material.color.b === 1
+          ) {
+            this.component.material.color.setRGB(1, 1, 0);
+          } else {
+            this.component.material.color.setRGB(1, 1, 1);
+          }
+          setIframe({
+            title: "Watch Realtime IOT No. #44s572",
+            message:
+              /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
+              "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
+          });
+          //alert("clicked!");
+          //setColorBoxFactoryMat(1,1,1)
+          /* this.node.stop();
+          addComponentNode2(); */
+        }
+      }
+      node3.position.set(-7.829, 1.886, 3.266);
+
       console.log(node3);
       // Spy on the click event
       //inputComponent.spyOnEvent(new ClickSpy());
