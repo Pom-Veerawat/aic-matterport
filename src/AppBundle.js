@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
-
+import {
+  videoRendererType,
+  makeVideoRenderer,
+} from "./scene-components/VideoRenderer";
 import Iframe from "./UI/Iframe";
 import { isElement } from "react-dom/test-utils";
+
+import logoThermometer from "./icon/thermometer.png";
 
 function App() {
   const [sdk, setSdk] = useState();
@@ -75,8 +80,27 @@ function App() {
   }
 
   const registerCustomComponent = async () => {
+    sdk.Scene.register(videoRendererType, makeVideoRenderer);
     /*  sdk.Scene.register(boxFactoryType, makeBoxFactory);
     sdk.Scene.register(iotBoxType, makeIotBox); */
+  };
+
+  const registerCustomIcon = async () => {
+    /*  sdk.Scene.register(boxFactoryType, makeBoxFactory);
+    sdk.Scene.register(iotBoxType, makeIotBox); */
+    console.log(window.location + "icon/thermometer.png");
+    sdk.Asset.registerTexture(
+      "customIcon-thermometer",
+      window.location + "icon/thermometer.png"
+    );
+    sdk.Asset.registerTexture(
+      "customIcon-thermometer-2",
+      window.location + "icon/temperature-icon-png-26.png"
+    );
+    sdk.Asset.registerTexture(
+      "customSVG-thermometer-2",
+      window.location + "icon/orange/tem2.svg"
+    );
   };
 
   const initialFunction = async () => {
@@ -99,13 +123,15 @@ function App() {
     );
     lightsNode.start();
 
+    registerCustomIcon();
+
     registerCustomComponent();
 
     //addComponentNode1();
 
     //addMattertagNode1();
     //addMattertagNode2();
-
+    addVideoObjectFromJson();
     addMatterTagFromJson();
 
     //html sandbox injection
@@ -133,6 +159,93 @@ function App() {
   };
   const iframeHandler = () => {
     setIframe(null);
+  };
+
+  const addVideoObjectFromJson = () => {
+    
+    sdk.Scene.createObjects(1).then((sceneObject) => {
+     
+      var node3 = sceneObject[0].addNode("node-obj-3");
+      var initial = {
+        //url: "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/models/sofa/9/scene.gltf",
+        visible: true,
+        size: { x: 0.6, y: 0.6, z: 0.01 },
+        localScale: {
+          x: 1,
+          y: 1,
+          z: 1,
+        },
+        localPosition: {
+          x: -5.12,
+          y: 0.002,
+          z: 2.4,
+        },
+        localRotation: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+
+        /*  position: { x: -1, y: -7.5, z: 2.25 }, */
+      };
+
+      const gltfrtv = node3.addComponent(
+        videoRendererType,
+        initial,
+        "my-component-3"
+      );
+      
+      class ClickSpy {
+        node = node3;
+        component = gltfrtv;
+        eventType = "INTERACTION.CLICK";
+        onEvent(payload) {
+
+          //this.component.video.play();//ย้ายไปเรียกในตัว three เพราะจะได้มี toggle
+          return;
+          console.log("received node3", payload, this);
+          console.log(this.component.material.color);
+          if (
+            this.component.material.color.r === 1 &&
+            this.component.material.color.g === 1 &&
+            this.component.material.color.b === 1
+          ) {
+            this.component.material.color.setRGB(1, 1, 0);
+          } else {
+            this.component.material.color.setRGB(1, 1, 1);
+          }
+          setIframe({
+            title: "Watch Realtime IOT No. #44s572",
+            message:
+              /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
+              "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
+          });
+          //alert("clicked!");
+          //setColorBoxFactoryMat(1,1,1)
+          /* this.node.stop();
+          addComponentNode2(); */
+        }
+      }
+      node3.position.set(-6.629, 0.686, 3.266);
+      
+      console.log(node3);
+      // Spy on the click event
+      //inputComponent.spyOnEvent(new ClickSpy());
+      //console.log(node3);
+      //gltfrtv?.outputs.objectRoot.position.set(0,-7,0);
+      gltfrtv?.spyOnEvent(new ClickSpy());
+
+      //setComponentBoxFactory(gltfrtv);
+      node3.start();
+      //setNodeBoxFactory(node3);
+      //console.log(gltfrtv);
+    });
+
+    // You can enable navigation after starting the node.
+    //inputComponent.inputs.userNavigationEnabled = true;
+    //console.log(node);
+    // You can turn off all events and the spy wont receive any callbacks.
+    //inputComponent.inputs.eventsEnabled = false;
   };
 
   const addMatterTagFromJson = () => {
@@ -173,7 +286,10 @@ function App() {
               element.normal,
               element.link,
               element.w,
-              element.h
+              element.h,
+              element.id,
+              element.color,
+              element.icon
             );
           }
 
@@ -203,23 +319,31 @@ function App() {
     vector,
     link,
     w,
-    h
+    h,
+    tagid,
+    color,
+    icon
   ) => {
-    h=600;
-    w=800;
+    h = 600;
+    w = 500;
     const tagId = sdk.Tag.add({
       label: label,
       anchorPosition: position,
       stemVector: vector,
+      stemVisible: true,
+      color: color,
+      //icon:icon,
+      iconId: icon,
     }).then(function (tagId) {
       var htmlToInject =
         ' \
-<style> \
-button { \
-width: 260px; \
-height: 50px; \
-} \
-</style> \
+        <style> \
+        button {\
+          width: 100px;\
+          height: 20px;\
+        }\
+      </style> \
+      <button id="btn1">Full Screen</button>\
 <iframe src="' +
         link +
         '" height="' +
@@ -227,39 +351,41 @@ height: 50px; \
         '" width="' +
         w +
         '" title="Iframe Example"></iframe> \
-<br></br> \
-<button id="btn2">Go to Dashboard</button> \
-<script> \
-var btn2 = document.getElementById("btn2"); \
-btn2.addEventListener("click", function () { \
-window.send("buttonClick2", 123456); \
-}); \
-</script>';
-//alert(htmlToInject);
-var htmlToInject2 =
-        ' \
-<style> \
-button { \
-width: 260px; \
-height: 50px; \
-} \
-</style> \
-<iframe src="https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2" height="500" width="600" title="Iframe Example"></iframe> \
-<br></br> \
-<button id="btn2">Go to Dashboard</button> \
-<script> \
-var btn2 = document.getElementById("btn2"); \
-btn2.addEventListener("click", function () { \
-window.send("buttonClick2", 123456); \
-}); \
-</script>';
+        <script>\
+    var btn1 = document.getElementById("btn1");\
+    btn1.addEventListener("click", () => {\
+      window.send("buttonClick' +
+        tagid +
+        '", ' +
+        tagid +
+        ");\
+    });\
+    \
+  </script>\
+    ";
+      sdk.Tag.editStem(tagId[0], { stemHeight: 0.05 });
+      //sdk.Tag.editIcon(tagId[0], icon);
+      /* // receive data from outside of the sandbox\
+window.on("updateButton", (newLabel, color) => {\
+  btn1.innerText = newLabel;\
+  btn1.style.backgroundColor = color;\
+});\ */
       const sandboxId = sdk.Tag.registerSandbox(htmlToInject, {
         size: {
-          w: 800,
-          h: 600,
+          w: 530,
+          h: 625,
         },
       }).then(function (sandboxId) {
         sdk.Tag.attach(tagId[0], sandboxId[0]);
+        sandboxId[1].on("buttonClick" + tagid, (buttonId) => {
+          setIframe({
+            title: label,
+            message:
+              /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
+              link,
+          });
+          console.log("clicked button with id:", buttonId);
+        });
       });
     });
   };
@@ -585,7 +711,7 @@ window.send("buttonClick2", 123456); \
         //src="./bundle/showcase.html?m=V5hx2ktRhvH&play=1&qs=1&log=0&applicationKey=w78qr7ncg7npmnhwu1xi07yza"
         src="./showcase-bundle/showcase.html?m=gKg4s9Z27t4&play=1&qs=1&log=0&applicationKey=x1pa124pp38sxs85k46kmbuha"
         width="100%"
-        height="800px"
+        height="900px"
         frameBorder="0"
         allow="xr-spatial-tracking"
         allowFullScreen
