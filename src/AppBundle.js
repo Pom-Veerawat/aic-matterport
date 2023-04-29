@@ -106,6 +106,27 @@ function App() {
       "customSVG-thermometer-2",
       window.location + "icon/orange/tem2.svg"
     );
+
+    sdk.Asset.registerTexture(
+      "customSVG-door-2",
+      window.location + "icon/orange/door2.svg"
+    );
+    sdk.Asset.registerTexture(
+      "customSVG-motion-2",
+      window.location + "icon/orange/motion2.svg"
+    );
+    sdk.Asset.registerTexture(
+      "customSVG-plug-2",
+      window.location + "icon/orange/plug2.svg"
+    );
+    sdk.Asset.registerTexture(
+      "customSVG-power-2",
+      window.location + "icon/orange/power2.svg"
+    );
+    sdk.Asset.registerTexture(
+      "customSVG-tem-2",
+      window.location + "icon/orange/tem2.svg"
+    );
   };
 
   const initialFunction = async () => {
@@ -137,7 +158,7 @@ function App() {
     //addMattertagNode1();
     //addMattertagNode2();
     addVideoObjectFromJson();
-    addIframeObjectFromJson();
+    //addIframeObjectFromJson();
     addMatterTagFromJson();
 
     //html sandbox injection
@@ -168,81 +189,87 @@ function App() {
   };
 
   const addVideoObjectFromJson = () => {
-    sdk.Scene.createObjects(1).then((sceneObject) => {
-      var node3 = sceneObject[0].addNode("node-obj-3");
-      var initial = {
-        //url: "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/models/sofa/9/scene.gltf",
-        visible: true,
-        size: { x: 1, y: 0.6, z: 0.01 },
-        localScale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        localPosition: {
-          x: -5.12,
-          y: 0.002,
-          z: 2.4,
-        },
-        localRotation: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
+    fetch(
+      "https://pom-iot-default-rtdb.asia-southeast1.firebasedatabase.app/IOTEquipment/Video.json"
+    )
+      .then((response) => {
+        const json = response.json();
 
-        /*  position: { x: -1, y: -7.5, z: 2.25 }, */
-      };
+        return json;
+      })
+      .then((data) => {
+        const allTagCount = data.count;
+        const allItems = data.items;
 
-      const gltfrtv = node3.addComponent(
-        videoRendererType,
-        initial,
-        "my-component-3"
-      );
-
-      class ClickSpy {
-        node = node3;
-        component = gltfrtv;
-        eventType = "INTERACTION.CLICK";
-        onEvent(payload) {
-          //this.component.video.play();//ย้ายไปเรียกในตัว three เพราะจะได้มี toggle
-          return;
-          console.log("received node3", payload, this);
-          console.log(this.component.material.color);
-          if (
-            this.component.material.color.r === 1 &&
-            this.component.material.color.g === 1 &&
-            this.component.material.color.b === 1
-          ) {
-            this.component.material.color.setRGB(1, 1, 0);
-          } else {
-            this.component.material.color.setRGB(1, 1, 1);
+        allItems.forEach((element) => {
+          if (element.disable == "true") {
+            return;
           }
-          setIframe({
-            title: "Watch Realtime IOT No. #44s572",
-            message:
-              /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
-              "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
+
+          sdk.Scene.createObjects(1).then((sceneObject) => {
+            var node3 = sceneObject[0].addNode("obj3d-"+element.id);
+            var initial = {
+              //url: "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/models/sofa/9/scene.gltf",
+              visible: true,
+              size: element.size,
+              rotation: element.rotation,
+              vdosrc: element.VDOsrc,
+              isLocalSrc:element.isLocalSrc,
+              /*  position: { x: -1, y: -7.5, z: 2.25 }, */
+            };
+
+            const gltfrtv = node3.addComponent(
+              videoRendererType,
+              initial,
+              "my-component-"+element.id
+            );
+
+            class ClickSpy {
+              node = node3;
+              component = gltfrtv;
+              eventType = "INTERACTION.CLICK";
+              onEvent(payload) {
+                //this.component.video.play();//ย้ายไปเรียกในตัว three เพราะจะได้มี toggle
+                return;
+                console.log("received node3", payload, this);
+                console.log(this.component.material.color);
+                if (
+                  this.component.material.color.r === 1 &&
+                  this.component.material.color.g === 1 &&
+                  this.component.material.color.b === 1
+                ) {
+                  this.component.material.color.setRGB(1, 1, 0);
+                } else {
+                  this.component.material.color.setRGB(1, 1, 1);
+                }
+                setIframe({
+                  title: "Watch Realtime IOT No. #44s572",
+                  message:
+                    /* "https://static.matterport.com/showcase-sdk/examples/vs-app-1.1.6-12-g0a66341/vs-app/index.html?applicationKey=08s53auxt9txz1w6hx2iww1qb&m=89SActNChJm&sr=-3.09,-1.18&ss=38", */
+                    "https://appz.myftp.org/d-solo/H3UlaCYVk/c?orgId=1&from=1681297720564&to=1681310146292&panelId=2",
+                });
+                //alert("clicked!");
+                //setColorBoxFactoryMat(1,1,1)
+                /* this.node.stop();
+                addComponentNode2(); */
+              }
+            }
+            node3.position.set(element.position.x,element.position.y,element.position.z);
+
+            console.log(node3);
+            // Spy on the click event
+            //inputComponent.spyOnEvent(new ClickSpy());
+            //console.log(node3);
+            //gltfrtv?.outputs.objectRoot.position.set(0,-7,0);
+            gltfrtv?.spyOnEvent(new ClickSpy());
+
+            //setComponentBoxFactory(gltfrtv);
+            node3.start();
+            //setNodeBoxFactory(node3);
+            //console.log(gltfrtv);
           });
-          //alert("clicked!");
-          //setColorBoxFactoryMat(1,1,1)
-          /* this.node.stop();
-          addComponentNode2(); */
-        }
-      }
-      node3.position.set(-6.629, 0.686, 3.266);
-
-      console.log(node3);
-      // Spy on the click event
-      //inputComponent.spyOnEvent(new ClickSpy());
-      //console.log(node3);
-      //gltfrtv?.outputs.objectRoot.position.set(0,-7,0);
-      gltfrtv?.spyOnEvent(new ClickSpy());
-
-      //setComponentBoxFactory(gltfrtv);
-      node3.start();
-      //setNodeBoxFactory(node3);
-      //console.log(gltfrtv);
-    });
+        });
+      });
 
     // You can enable navigation after starting the node.
     //inputComponent.inputs.userNavigationEnabled = true;
@@ -273,7 +300,6 @@ function App() {
           y: 0,
           z: 0,
         },
-       
 
         /*  position: { x: -1, y: -7.5, z: 2.25 }, */
       };

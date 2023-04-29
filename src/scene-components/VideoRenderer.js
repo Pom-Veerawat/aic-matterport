@@ -3,8 +3,11 @@ import Hls from "hls.js";
 function VideoRenderer() {
   this.inputs = {
     visible: true,
+    vdosrc: "",
     size: { x: 1, y: 1, z: 1 },
+    rotation: { x: 0, y: 0, z: 0 },
     color: 0xffff00,
+    isLocalSrc:"false",
   };
   this.firstplay = false;
   /* inputs: Inputs = {
@@ -69,7 +72,9 @@ function VideoRenderer() {
       this.inputs.size.z
     );
 
-    this.geometry.rotateY(0.01);
+    this.geometry.rotateX(this.inputs.rotation.x);
+    this.geometry.rotateY(this.inputs.rotation.y);
+    this.geometry.rotateZ(this.inputs.rotation.z);
 
     /*  console.log("1");
     console.log(this);
@@ -84,7 +89,7 @@ function VideoRenderer() {
       "https://static.matterport.com/showcase-sdk/examples/assets-1.0-2-g6b74572/assets/textures/ff.png"
     ); */
     this.playIconTexture = textureLoader.load(
-      window.location + "icon/play.svg"
+      window.location + "icon/orange/Frameplay.svg"
     );
     console.log(this.playIconTexture);
     this.material = new THREE.MeshBasicMaterial({
@@ -116,6 +121,11 @@ function VideoRenderer() {
       /* this.inputsrc = window.location + "vdo/AIC-intro.mp4"; */
       this.inputsrc =
         "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8";
+      this.inputsrc = this.inputs.vdosrc;
+      if(this.inputs.isLocalSrc == "true")
+      {
+        this.inputsrc = window.location +this.inputs.vdosrc;
+      }
       this.video = this.createVideoElement();
       if (this.inputsrc.includes(".m3u8")) {
         this.hls = new Hls();
