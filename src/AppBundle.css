@@ -44,4 +44,9 @@
     height: 800px;
     width: 1300px;
   }
-  
+  #buttonGetPos {
+    position: absolute;
+    width: 55px;
+    height: 30px;
+    display: none;
+  }

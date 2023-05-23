@@ -1,6 +1,6 @@
 //import {CSS3DRenderer,CSS3DObject } from  'three-css3drenderer'
 import Hls from "hls.js";
-function VideoRenderer() {
+function VideoDummyRenderer() {
   this.inputs = {
     visible: true,
     vdosrc: "",
@@ -108,55 +108,7 @@ function VideoRenderer() {
 
   this.onEvent = function (type, data) {
     if (type === "INTERACTION.CLICK") {
-      this.notify("INTERACTION.CLICK", {
-        type: type,
-        node: this.context.root,
-        component: this,
-      });
-      console.log(type, data);
-      if (this.firstplay === true) {
-        return;
-      }
-      var THREE = this.context.three;
-      /* this.inputsrc = window.location.pathname + "vdo/AIC-intro.mp4"; */
-      this.inputsrc =
-        "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8";
-      this.inputsrc = this.inputs.vdosrc;
-      if(this.inputs.isLocalSrc == "true")
-      {
-        this.inputsrc = window.location.pathname +this.inputs.vdosrc;
-      }
-      this.video = this.createVideoElement();
-      if (this.inputsrc.includes(".m3u8")) {
-        this.hls = new Hls();
-        this.hls.loadSource(this.inputsrc);
-        this.hls.attachMedia(this.video);
-        this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          this.outputs.video = this.video;
-        });
-      } else {
-        this.video.src = this.inputsrc;
-      }
-      /* this.video.src = ; */
-
-      this.video.load();
-
-      this.texture = new THREE.VideoTexture(this.video);
-      this.texture.minFilter = THREE.LinearFilter;
-      this.texture.magFilter = THREE.LinearFilter;
-      this.texture.format = THREE.RGBAFormat;
-      this.material = new THREE.MeshBasicMaterial({
-        map: this.texture,
-        opacity: 1,
-      });
-      var mesh = new THREE.Mesh(this.geometry, this.material);
-      mesh.material.color.setHex(this.inputs.color);
-      mesh.material.color.setRGB(1, 1, 1);
-      this.outputs.objectRoot = mesh;
-      this.outputs.collider = mesh;
-
-      this.video.play();
-      this.firstplay = true;
+      
     }
   };
 
@@ -204,7 +156,7 @@ function VideoRenderer() {
     return new Box();
  } */
 
-export const videoRendererType = "mp.videoRenderer";
-export const makeVideoRenderer = function () {
-  return new VideoRenderer();
+export const videoRendererDummyType = "mp.videoRendererDummy";
+export const makeVideoRendererDummy = function () {
+  return new VideoDummyRenderer();
 };
