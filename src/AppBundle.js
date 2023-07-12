@@ -1578,7 +1578,7 @@ window.send("buttonClick2", 123456); \
                   });
                 }}
               >
-                กราฟแสดงผล
+                All Elc Graphs
               </button>
             </div>
           </div>
